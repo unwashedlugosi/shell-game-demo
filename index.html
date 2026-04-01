@@ -213,9 +213,7 @@ function resize() {
 resize();
 window.addEventListener('resize', resize);
 
-// ── Colors ──
-// All caps are the same color — you have to track by position, not color
-const CAP_COLOR = { main: '#c41e3a', dark: '#8a1528', mid: '#a01a30', light: '#e8354f' };
+// ── Colors ── (popcorn bucket red & white stripes)
 
 // ── Drawing functions ──
 
@@ -312,203 +310,162 @@ function drawBall(x, y, size) {
   ctx.restore();
 }
 
-function drawCap(x, y, w, col, liftY) {
-  // 3/4 view baseball cap — brim faces toward viewer (bottom of screen)
-  // Cap is sitting brim-down, hiding the ball underneath
+function drawCap(x, y, w, _col, liftY) {
+  // Upside-down popcorn bucket hiding the ball
+  // Bucket is flipped: wide opening at bottom (on ground), narrow base on top
   const cy = y + liftY;
-  const scale = w / 90; // reference size
+  const scale = w / 90;
+
+  // Bucket dimensions
+  const topW = 26 * scale;    // narrow top (bucket base when flipped)
+  const botW = 40 * scale;    // wide bottom (bucket opening when flipped)
+  const bH = 70 * scale;      // bucket height
+  const rimH = 5 * scale;     // rolled rim thickness
 
   ctx.save();
   ctx.translate(x, cy);
 
   // ── Shadow on ground ──
-  const shadowY = -liftY; // shadow stays on ground
+  const shadowY = -liftY;
   const shadowSpread = 1 + Math.abs(liftY) * 0.008;
   ctx.beginPath();
-  ctx.ellipse(0, shadowY + 22*scale, 48*scale*shadowSpread, 14*scale*shadowSpread, 0, 0, Math.PI*2);
-  ctx.fillStyle = `rgba(0,0,0,${Math.max(0.1, 0.35 - Math.abs(liftY)*0.003)})`;
+  ctx.ellipse(0, shadowY + bH*0.5 + 4, botW*1.05*shadowSpread, 12*scale*shadowSpread, 0, 0, Math.PI*2);
+  ctx.fillStyle = `rgba(0,0,0,${Math.max(0.08, 0.32 - Math.abs(liftY)*0.003)})`;
   ctx.fill();
 
-  // ── Brim — the key baseball cap feature ──
-  // Curved brim extending toward viewer (downward on screen)
-  // Underside of brim (darker, visible because of 3/4 angle)
+  // ── Bucket body ── (trapezoid: narrow top, wide bottom)
+  // We draw as a filled path
   ctx.beginPath();
-  ctx.moveTo(-38*scale, 8*scale);
-  ctx.quadraticCurveTo(-42*scale, 22*scale, -20*scale, 34*scale);
-  ctx.quadraticCurveTo(0, 40*scale, 20*scale, 34*scale);
-  ctx.quadraticCurveTo(42*scale, 22*scale, 38*scale, 8*scale);
-  ctx.closePath();
-  ctx.fillStyle = col.dark;
-  ctx.fill();
-
-  // Brim top surface (slightly lighter, with curve)
-  ctx.beginPath();
-  ctx.moveTo(-36*scale, 6*scale);
-  ctx.quadraticCurveTo(-40*scale, 18*scale, -18*scale, 28*scale);
-  ctx.quadraticCurveTo(0, 33*scale, 18*scale, 28*scale);
-  ctx.quadraticCurveTo(40*scale, 18*scale, 36*scale, 6*scale);
-  ctx.closePath();
-  const brimG = ctx.createLinearGradient(0, 6*scale, 0, 30*scale);
-  brimG.addColorStop(0, col.main);
-  brimG.addColorStop(0.5, col.mid);
-  brimG.addColorStop(1, col.dark);
-  ctx.fillStyle = brimG;
-  ctx.fill();
-
-  // Brim edge stitching line
-  ctx.beginPath();
-  ctx.moveTo(-34*scale, 8*scale);
-  ctx.quadraticCurveTo(-36*scale, 18*scale, -17*scale, 27*scale);
-  ctx.quadraticCurveTo(0, 31*scale, 17*scale, 27*scale);
-  ctx.quadraticCurveTo(36*scale, 18*scale, 34*scale, 8*scale);
-  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-  ctx.lineWidth = 1 * scale;
-  ctx.stroke();
-
-  // Second stitch line near edge
-  ctx.beginPath();
-  ctx.moveTo(-32*scale, 9*scale);
-  ctx.quadraticCurveTo(-35*scale, 20*scale, -16*scale, 29*scale);
-  ctx.quadraticCurveTo(0, 33*scale, 16*scale, 29*scale);
-  ctx.quadraticCurveTo(35*scale, 20*scale, 32*scale, 9*scale);
-  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
-  ctx.lineWidth = 0.7 * scale;
-  ctx.stroke();
-
-  // ── Crown — structured 6-panel dome ──
-  // Back of crown (drawn first, behind front panels)
-  ctx.beginPath();
-  ctx.moveTo(-38*scale, 8*scale);
-  ctx.quadraticCurveTo(-44*scale, -8*scale, -32*scale, -28*scale);
-  ctx.quadraticCurveTo(-16*scale, -46*scale, 0, -48*scale);
-  ctx.quadraticCurveTo(16*scale, -46*scale, 32*scale, -28*scale);
-  ctx.quadraticCurveTo(44*scale, -8*scale, 38*scale, 8*scale);
+  ctx.moveTo(-topW, -bH*0.5);           // top-left
+  ctx.lineTo(-botW, bH*0.5 - rimH);     // bottom-left
+  ctx.quadraticCurveTo(-botW, bH*0.5, -botW + 2*scale, bH*0.5); // bottom-left corner
+  ctx.lineTo(botW - 2*scale, bH*0.5);
+  ctx.quadraticCurveTo(botW, bH*0.5, botW, bH*0.5 - rimH);  // bottom-right corner
+  ctx.lineTo(topW, -bH*0.5);            // top-right
   ctx.closePath();
 
-  const crownG = ctx.createRadialGradient(-10*scale, -20*scale, 5*scale, 0, -10*scale, 50*scale);
-  crownG.addColorStop(0, col.light);
-  crownG.addColorStop(0.4, col.main);
-  crownG.addColorStop(0.8, col.mid);
-  crownG.addColorStop(1, col.dark);
-  ctx.fillStyle = crownG;
+  // Base white fill
+  ctx.fillStyle = '#f5f0e5';
   ctx.fill();
 
-  // Crown outline
-  ctx.strokeStyle = col.dark;
-  ctx.lineWidth = 1.2 * scale;
-  ctx.stroke();
+  // ── Red & white vertical stripes ──
+  ctx.save();
+  ctx.clip(); // clip stripes to bucket shape
 
-  // ── Panel seams — 6 panels radiating from button ──
-  ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-  ctx.lineWidth = 1 * scale;
-  ctx.lineCap = 'round';
+  const numStripes = 14;
+  const stripeColor = '#cc1133';
+  for (let i = 0; i < numStripes; i++) {
+    if (i % 2 === 0) continue; // skip white stripes (already white base)
+    // Interpolate left/right edges at top and bottom for this stripe
+    const t1 = i / numStripes;
+    const t2 = (i + 1) / numStripes;
+    const topL = -topW + t1 * topW * 2;
+    const topR = -topW + t2 * topW * 2;
+    const botL = -botW + t1 * botW * 2;
+    const botR = -botW + t2 * botW * 2;
 
-  // Center front seam
-  ctx.beginPath();
-  ctx.moveTo(0, -48*scale);
-  ctx.quadraticCurveTo(0, -20*scale, 0, 8*scale);
-  ctx.stroke();
-
-  // Front-left panel seam
-  ctx.beginPath();
-  ctx.moveTo(0, -48*scale);
-  ctx.quadraticCurveTo(-18*scale, -32*scale, -36*scale, -4*scale);
-  ctx.stroke();
-
-  // Front-right panel seam
-  ctx.beginPath();
-  ctx.moveTo(0, -48*scale);
-  ctx.quadraticCurveTo(18*scale, -32*scale, 36*scale, -4*scale);
-  ctx.stroke();
-
-  // Back-left seam (visible at edge)
-  ctx.beginPath();
-  ctx.moveTo(0, -48*scale);
-  ctx.quadraticCurveTo(-30*scale, -38*scale, -42*scale, -16*scale);
-  ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-  ctx.stroke();
-
-  // Back-right seam
-  ctx.beginPath();
-  ctx.moveTo(0, -48*scale);
-  ctx.quadraticCurveTo(30*scale, -38*scale, 42*scale, -16*scale);
-  ctx.stroke();
-
-  // ── Front panel — slightly raised look for the front two panels ──
-  // This gives the structured/stiff front panel look
-  ctx.beginPath();
-  ctx.moveTo(-30*scale, 4*scale);
-  ctx.quadraticCurveTo(-34*scale, -12*scale, -22*scale, -30*scale);
-  ctx.quadraticCurveTo(-10*scale, -44*scale, 0, -48*scale);
-  ctx.quadraticCurveTo(10*scale, -44*scale, 22*scale, -30*scale);
-  ctx.quadraticCurveTo(34*scale, -12*scale, 30*scale, 4*scale);
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(255,255,255,0.04)';
-  ctx.fill();
-
-  // ── Sweatband / headband — visible at the base ──
-  ctx.beginPath();
-  ctx.moveTo(-38*scale, 8*scale);
-  ctx.quadraticCurveTo(-20*scale, 14*scale, 0, 15*scale);
-  ctx.quadraticCurveTo(20*scale, 14*scale, 38*scale, 8*scale);
-  ctx.lineWidth = 3 * scale;
-  ctx.strokeStyle = col.dark;
-  ctx.stroke();
-
-  // Inner band line
-  ctx.beginPath();
-  ctx.moveTo(-36*scale, 10*scale);
-  ctx.quadraticCurveTo(-18*scale, 16*scale, 0, 17*scale);
-  ctx.quadraticCurveTo(18*scale, 16*scale, 36*scale, 10*scale);
-  ctx.lineWidth = 1.5 * scale;
-  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-  ctx.stroke();
-
-  // ── Button on top ──
-  ctx.beginPath();
-  ctx.arc(0, -48*scale, 3.5*scale, 0, Math.PI*2);
-  ctx.fillStyle = col.dark;
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(0, -48*scale, 3.5*scale, 0, Math.PI*2);
-  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-  ctx.lineWidth = 0.8 * scale;
-  ctx.stroke();
-  // Button highlight
-  ctx.beginPath();
-  ctx.arc(-0.8*scale, -49*scale, 1.2*scale, 0, Math.PI*2);
-  ctx.fillStyle = 'rgba(255,255,255,0.25)';
-  ctx.fill();
-
-  // ── Crown highlight / sheen ──
-  ctx.beginPath();
-  ctx.moveTo(-16*scale, -18*scale);
-  ctx.quadraticCurveTo(-8*scale, -36*scale, 6*scale, -34*scale);
-  ctx.strokeStyle = 'rgba(255,255,255,0.14)';
-  ctx.lineWidth = 3.5 * scale;
-  ctx.lineCap = 'round';
-  ctx.stroke();
-
-  // Smaller secondary highlight
-  ctx.beginPath();
-  ctx.moveTo(-20*scale, -8*scale);
-  ctx.quadraticCurveTo(-14*scale, -16*scale, -6*scale, -14*scale);
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-  ctx.lineWidth = 2 * scale;
-  ctx.stroke();
-
-  // ── Eyelets — small ventilation holes on side panels ──
-  const eyeletY = -22*scale;
-  for (const ex of [-24*scale, -18*scale, 24*scale, 18*scale]) {
     ctx.beginPath();
-    ctx.arc(ex, eyeletY, 1.3*scale, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(ex, eyeletY - 0.5*scale, 0.6*scale, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.moveTo(topL, -bH*0.5);
+    ctx.lineTo(botL, bH*0.5);
+    ctx.lineTo(botR, bH*0.5);
+    ctx.lineTo(topR, -bH*0.5);
+    ctx.closePath();
+    ctx.fillStyle = stripeColor;
     ctx.fill();
   }
+  ctx.restore();
+
+  // ── Bucket outline ──
+  ctx.beginPath();
+  ctx.moveTo(-topW, -bH*0.5);
+  ctx.lineTo(-botW, bH*0.5 - rimH);
+  ctx.quadraticCurveTo(-botW, bH*0.5, -botW + 2*scale, bH*0.5);
+  ctx.lineTo(botW - 2*scale, bH*0.5);
+  ctx.quadraticCurveTo(botW, bH*0.5, botW, bH*0.5 - rimH);
+  ctx.lineTo(topW, -bH*0.5);
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+  ctx.lineWidth = 1.5 * scale;
+  ctx.stroke();
+
+  // ── Rolled rim at bottom (the opening, now on the ground) ──
+  ctx.beginPath();
+  ctx.ellipse(0, bH*0.5, botW + 1*scale, rimH*1.4, 0, 0, Math.PI*2);
+  ctx.fillStyle = '#ddd5c5';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+  ctx.lineWidth = 1 * scale;
+  ctx.stroke();
+
+  // Inner rim (darker, gives depth)
+  ctx.beginPath();
+  ctx.ellipse(0, bH*0.5, botW - 2*scale, rimH*0.8, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  ctx.fill();
+
+  // ── Flat base on top (the closed bottom, now facing up) ──
+  ctx.beginPath();
+  ctx.ellipse(0, -bH*0.5, topW, 6*scale, 0, 0, Math.PI*2);
+  ctx.fillStyle = '#e8e0d0';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+  ctx.lineWidth = 0.8 * scale;
+  ctx.stroke();
+
+  // ── "POPCORN" text band ──
+  // White band across the upper portion
+  const bandY = -bH*0.18;
+  const bandH = 12 * scale;
+  const bandTopW = topW + (botW - topW) * 0.35;
+  const bandBotW = topW + (botW - topW) * 0.48;
+
+  ctx.beginPath();
+  ctx.moveTo(-bandTopW, bandY - bandH/2);
+  ctx.lineTo(-bandBotW, bandY + bandH/2);
+  ctx.lineTo(bandBotW, bandY + bandH/2);
+  ctx.lineTo(bandTopW, bandY - bandH/2);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fill();
+
+  // "POPCORN" text
+  ctx.fillStyle = '#cc1133';
+  ctx.font = `800 ${9*scale}px 'Arial Black', 'Impact', sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.letterSpacing = `${2*scale}px`;
+  ctx.fillText('POPCORN', 0, bandY + 0.5*scale);
+
+  // ── Subtle lighting / sheen ──
+  // Left-side highlight
+  const sheenG = ctx.createLinearGradient(-botW, 0, -topW*0.3, 0);
+  sheenG.addColorStop(0, 'rgba(255,255,255,0)');
+  sheenG.addColorStop(0.4, 'rgba(255,255,255,0.1)');
+  sheenG.addColorStop(1, 'rgba(255,255,255,0)');
+
+  ctx.beginPath();
+  ctx.moveTo(-topW, -bH*0.5);
+  ctx.lineTo(-botW, bH*0.5);
+  ctx.lineTo(-topW*0.3, bH*0.5);
+  ctx.lineTo(-topW*0.2, -bH*0.5);
+  ctx.closePath();
+  ctx.fillStyle = sheenG;
+  ctx.fill();
+
+  // Right-side shadow
+  const shadowG = ctx.createLinearGradient(topW*0.3, 0, botW, 0);
+  shadowG.addColorStop(0, 'rgba(0,0,0,0)');
+  shadowG.addColorStop(0.5, 'rgba(0,0,0,0.06)');
+  shadowG.addColorStop(1, 'rgba(0,0,0,0.12)');
+
+  ctx.beginPath();
+  ctx.moveTo(topW*0.2, -bH*0.5);
+  ctx.lineTo(topW*0.3, bH*0.5);
+  ctx.lineTo(botW, bH*0.5);
+  ctx.lineTo(topW, -bH*0.5);
+  ctx.closePath();
+  ctx.fillStyle = shadowG;
+  ctx.fill();
 
   ctx.restore();
 }
@@ -569,7 +526,7 @@ function updateUI() {
   const s = state;
   let instr = '';
   if (s.phase === 'reveal' || s.phase === 'covering') instr = 'Watch the ball\u2026';
-  else if (s.phase === 'shuffling') instr = 'Follow the cap\u2026';
+  else if (s.phase === 'shuffling') instr = 'Follow the bucket\u2026';
   else if (s.phase === 'picking') instr = 'Where\u2019s the ball?';
   else if (s.phase === 'revealing') instr = s.pickedSlot === s.capSlots[s.ballUnder] ? '&#x2705; Yes!' : '&#x274C; Nope!';
   else if (s.phase === 'gameover') instr = '';
@@ -584,7 +541,7 @@ function updateUI() {
     <div class="ui-instruction">${instr}</div>`;
 
   if (s.numCaps > 3 && s.phase !== 'gameover') {
-    html += `<div class="ui-cap-count">${s.numCaps} caps</div>`;
+    html += `<div class="ui-cap-count">${s.numCaps} buckets</div>`;
   }
 
   uiEl.innerHTML = html;
@@ -595,11 +552,13 @@ function updateUI() {
       const x = slotX(slot, s.numCaps);
       const zone = document.createElement('div');
       zone.className = 'tap-zone';
-      const size = CAP_W * 1.1;
-      zone.style.width = size + 'px';
-      zone.style.height = size + 'px';
-      zone.style.left = (x - size/2) + 'px';
-      zone.style.top = (CY - size*0.4) + 'px';
+      const zw = CAP_W * 1.1;
+      const zh = CAP_W * 1.6; // taller for bucket shape
+      zone.style.width = zw + 'px';
+      zone.style.height = zh + 'px';
+      zone.style.left = (x - zw/2) + 'px';
+      zone.style.top = (CY - zh*0.55) + 'px';
+      zone.style.borderRadius = '8px';
       zone.dataset.slot = slot;
       zone.addEventListener('click', () => handlePick(slot));
       uiEl.appendChild(zone);
@@ -773,35 +732,33 @@ function frame(now) {
   if (s.ballVisible) {
     const ballCap = positions.find(p => p.capIdx === s.ballUnder);
     if (ballCap) {
-      drawBall(ballCap.x, ballCap.y + 22, BALL_R);
+      drawBall(ballCap.x, ballCap.y + 30, BALL_R);
     }
   }
 
   // Draw caps
   for (const p of positions) {
-    const col = CAP_COLOR;
-
     // Glow effect during picking phase
     if (s.phase === 'picking') {
       ctx.save();
       ctx.beginPath();
-      ctx.ellipse(p.x, p.y + p.liftY - 10, CAP_W*0.45, CAP_W*0.3, 0, 0, Math.PI*2);
+      ctx.ellipse(p.x, p.y + p.liftY, CAP_W*0.5, CAP_W*0.2, 0, 0, Math.PI*2);
       ctx.fillStyle = 'rgba(255, 215, 0, 0.08)';
       ctx.fill();
       ctx.restore();
     }
 
-    // Highlight picked cap during reveal
+    // Highlight picked bucket during reveal
     if (s.phase === 'revealing' && s.pickedSlot === s.capSlots[p.capIdx]) {
       ctx.save();
       ctx.beginPath();
-      ctx.ellipse(p.x, p.y - 10, CAP_W*0.5, CAP_W*0.35, 0, 0, Math.PI*2);
+      ctx.ellipse(p.x, p.y, CAP_W*0.55, CAP_W*0.25, 0, 0, Math.PI*2);
       ctx.fillStyle = 'rgba(255, 215, 0, 0.12)';
       ctx.fill();
       ctx.restore();
     }
 
-    drawCap(p.x, p.y, CAP_W, col, p.liftY);
+    drawCap(p.x, p.y, CAP_W, null, p.liftY);
   }
 }
 
