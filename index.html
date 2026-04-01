@@ -214,13 +214,8 @@ resize();
 window.addEventListener('resize', resize);
 
 // ── Colors ──
-const CAP_COLORS = [
-  { main: '#c41e3a', dark: '#8a1528', mid: '#a01a30', light: '#e8354f' },
-  { main: '#1a3a6b', dark: '#0f2245', mid: '#15305a', light: '#2a5090' },
-  { main: '#2d6a1e', dark: '#1a4012', mid: '#256018', light: '#3d8a2a' },
-  { main: '#6b3a1a', dark: '#452510', mid: '#5a3018', light: '#8a5028' },
-  { main: '#4a1a6b', dark: '#2e1042', mid: '#3e1558', light: '#6a2a90' },
-];
+// All caps are the same color — you have to track by position, not color
+const CAP_COLOR = { main: '#c41e3a', dark: '#8a1528', mid: '#a01a30', light: '#e8354f' };
 
 // ── Drawing functions ──
 
@@ -672,7 +667,7 @@ function frame(now) {
 
   // Draw caps
   for (const p of positions) {
-    const col = CAP_COLORS[p.capIdx % CAP_COLORS.length];
+    const col = CAP_COLOR;
 
     // Glow effect during picking phase
     if (s.phase === 'picking') {
