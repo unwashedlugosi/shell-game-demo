@@ -253,219 +253,425 @@ function drawGrass() {
 
 function drawBall(x, y, size) {
   ctx.save();
-  // Shadow
+
+  // 1. Soft contact shadow directly beneath
   ctx.beginPath();
-  ctx.ellipse(x, y + size * 0.8, size * 0.7, size * 0.2, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.ellipse(x, y + size*0.85, size*0.6, size*0.15, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
   ctx.fill();
 
-  // Ball body
+  // 2. Wider ambient shadow
   ctx.beginPath();
-  ctx.arc(x, y, size, 0, Math.PI * 2);
-  const bg = ctx.createRadialGradient(x - size*0.3, y - size*0.3, size*0.1, x, y, size);
-  bg.addColorStop(0, '#fffff5');
-  bg.addColorStop(0.4, '#f5f0e8');
-  bg.addColorStop(1, '#d8d0c0');
+  ctx.ellipse(x, y + size*0.9, size*0.9, size*0.22, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.fill();
+
+  // 3. Ball body with leather-like gradient
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI*2);
+  const bg = ctx.createRadialGradient(x - size*0.3, y - size*0.35, size*0.05, x + size*0.1, y + size*0.1, size*1.1);
+  bg.addColorStop(0, '#fffff8');
+  bg.addColorStop(0.25, '#f8f4ec');
+  bg.addColorStop(0.6, '#ede6d6');
+  bg.addColorStop(0.85, '#d8ceb8');
+  bg.addColorStop(1, '#c0b8a4');
   ctx.fillStyle = bg;
   ctx.fill();
 
-  // Seam curves
-  ctx.strokeStyle = '#cc0000';
-  ctx.lineWidth = size * 0.08;
-
-  // Left seam
-  ctx.beginPath();
-  ctx.moveTo(x - size*0.45, y - size*0.65);
-  ctx.quadraticCurveTo(x - size*0.55, y, x - size*0.45, y + size*0.65);
+  // 4. Subtle outline
+  ctx.strokeStyle = 'rgba(140,120,90,0.35)';
+  ctx.lineWidth = size * 0.06;
   ctx.stroke();
 
-  // Right seam
+  // 5. Left seam — tighter S-curve
+  ctx.strokeStyle = '#cc1818';
+  ctx.lineWidth = size * 0.09;
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.moveTo(x + size*0.45, y - size*0.65);
-  ctx.quadraticCurveTo(x + size*0.55, y, x + size*0.45, y + size*0.65);
+  ctx.moveTo(x - size*0.42, y - size*0.7);
+  ctx.bezierCurveTo(x - size*0.58, y - size*0.25, x - size*0.48, y + size*0.25, x - size*0.42, y + size*0.7);
   ctx.stroke();
 
-  // Stitch marks
-  ctx.lineWidth = size * 0.05;
-  for (let i = -3; i <= 3; i++) {
-    const yy = y + i * size * 0.18;
-    // Left stitches
+  // 6. Right seam — mirror S-curve
+  ctx.beginPath();
+  ctx.moveTo(x + size*0.42, y - size*0.7);
+  ctx.bezierCurveTo(x + size*0.58, y - size*0.25, x + size*0.48, y + size*0.25, x + size*0.42, y + size*0.7);
+  ctx.stroke();
+
+  // 7-8. Stitch marks along both seams — V-shaped like real stitches
+  ctx.lineWidth = size * 0.045;
+  ctx.strokeStyle = '#cc1818';
+  for (let i = -4; i <= 4; i++) {
+    const frac = i / 4.5;
+    const yy = y + frac * size * 0.7;
+    const curve = Math.abs(frac);
+    // Left V-stitches
+    const lx = x - size*0.50 + curve * size * 0.08;
     ctx.beginPath();
-    ctx.moveTo(x - size*0.55 + Math.abs(i)*1.5, yy);
-    ctx.lineTo(x - size*0.38 + Math.abs(i)*1, yy + size*0.04);
+    ctx.moveTo(lx - size*0.06, yy - size*0.03);
+    ctx.lineTo(lx + size*0.04, yy);
+    ctx.lineTo(lx - size*0.06, yy + size*0.03);
     ctx.stroke();
-    // Right stitches
+    // Right V-stitches
+    const rx = x + size*0.50 - curve * size * 0.08;
     ctx.beginPath();
-    ctx.moveTo(x + size*0.55 - Math.abs(i)*1.5, yy);
-    ctx.lineTo(x + size*0.38 - Math.abs(i)*1, yy + size*0.04);
+    ctx.moveTo(rx + size*0.06, yy - size*0.03);
+    ctx.lineTo(rx - size*0.04, yy);
+    ctx.lineTo(rx + size*0.06, yy + size*0.03);
     ctx.stroke();
   }
 
-  // Highlight
+  // 9. Hot highlight (bright specular)
   ctx.beginPath();
-  ctx.arc(x - size*0.25, y - size*0.3, size*0.25, 0, Math.PI*2);
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.arc(x - size*0.22, y - size*0.28, size*0.13, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.fill();
+
+  // 10. Broader soft highlight
+  ctx.beginPath();
+  ctx.arc(x - size*0.15, y - size*0.22, size*0.28, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.fill();
+
+  // 11. Bottom rim shadow inside ball
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI*2);
+  const rimShadow = ctx.createLinearGradient(x, y + size*0.3, x, y + size);
+  rimShadow.addColorStop(0, 'rgba(0,0,0,0)');
+  rimShadow.addColorStop(1, 'rgba(0,0,0,0.1)');
+  ctx.fillStyle = rimShadow;
   ctx.fill();
 
   ctx.restore();
 }
 
 function drawCap(x, y, w, _col, liftY) {
-  // Upside-down popcorn bucket hiding the ball
-  // Bucket is flipped: wide opening at bottom (on ground), narrow base on top
   const cy = y + liftY;
   const scale = w / 90;
 
-  // Bucket dimensions
-  const topW = 26 * scale;    // narrow top (bucket base when flipped)
-  const botW = 40 * scale;    // wide bottom (bucket opening when flipped)
-  const bH = 70 * scale;      // bucket height
-  const rimH = 5 * scale;     // rolled rim thickness
+  // Bucket dimensions — upside down (wide rim on ground, narrow base on top)
+  const topW = 28 * scale;     // narrow top (the closed base)
+  const botW = 42 * scale;     // wide bottom (the opening rim)
+  const bH = 72 * scale;       // total height
+  const rimH = 6 * scale;      // rim thickness
+  const cornerR = 3 * scale;   // corner rounding
 
   ctx.save();
   ctx.translate(x, cy);
 
-  // ── Shadow on ground ──
+  // 1. Ground shadow — ellipse with blur feel
   const shadowY = -liftY;
   const shadowSpread = 1 + Math.abs(liftY) * 0.008;
   ctx.beginPath();
-  ctx.ellipse(0, shadowY + bH*0.5 + 4, botW*1.05*shadowSpread, 12*scale*shadowSpread, 0, 0, Math.PI*2);
-  ctx.fillStyle = `rgba(0,0,0,${Math.max(0.08, 0.32 - Math.abs(liftY)*0.003)})`;
+  ctx.ellipse(0, shadowY + bH*0.5 + 6, botW*1.1*shadowSpread, 14*scale*shadowSpread, 0, 0, Math.PI*2);
+  ctx.fillStyle = `rgba(0,0,0,${Math.max(0.06, 0.30 - Math.abs(liftY)*0.003)})`;
   ctx.fill();
-
-  // ── Bucket body ── (trapezoid: narrow top, wide bottom)
-  // We draw as a filled path
+  // 2. Tighter core shadow
   ctx.beginPath();
-  ctx.moveTo(-topW, -bH*0.5);           // top-left
-  ctx.lineTo(-botW, bH*0.5 - rimH);     // bottom-left
-  ctx.quadraticCurveTo(-botW, bH*0.5, -botW + 2*scale, bH*0.5); // bottom-left corner
-  ctx.lineTo(botW - 2*scale, bH*0.5);
-  ctx.quadraticCurveTo(botW, bH*0.5, botW, bH*0.5 - rimH);  // bottom-right corner
-  ctx.lineTo(topW, -bH*0.5);            // top-right
-  ctx.closePath();
-
-  // Base white fill
-  ctx.fillStyle = '#f5f0e5';
+  ctx.ellipse(0, shadowY + bH*0.5 + 4, botW*0.8*shadowSpread, 8*scale*shadowSpread, 0, 0, Math.PI*2);
+  ctx.fillStyle = `rgba(0,0,0,${Math.max(0.04, 0.15 - Math.abs(liftY)*0.002)})`;
   ctx.fill();
 
-  // ── Red & white vertical stripes ──
-  ctx.save();
-  ctx.clip(); // clip stripes to bucket shape
+  // ── Helper: bucket body path ──
+  function bucketPath() {
+    ctx.beginPath();
+    ctx.moveTo(-topW + cornerR, -bH*0.5);
+    ctx.lineTo(topW - cornerR, -bH*0.5);
+    ctx.quadraticCurveTo(topW, -bH*0.5, topW + 1*scale, -bH*0.5 + cornerR);
+    ctx.lineTo(botW, bH*0.5 - rimH);
+    ctx.quadraticCurveTo(botW + 0.5*scale, bH*0.5 - rimH + cornerR, botW - 1*scale, bH*0.5 - rimH + cornerR);
+    ctx.lineTo(-botW + 1*scale, bH*0.5 - rimH + cornerR);
+    ctx.quadraticCurveTo(-botW - 0.5*scale, bH*0.5 - rimH + cornerR, -botW, bH*0.5 - rimH);
+    ctx.lineTo(-topW - 1*scale, -bH*0.5 + cornerR);
+    ctx.quadraticCurveTo(-topW, -bH*0.5, -topW + cornerR, -bH*0.5);
+    ctx.closePath();
+  }
 
-  const numStripes = 14;
-  const stripeColor = '#cc1133';
+  // 3. Bucket body — warm white base
+  bucketPath();
+  const bodyG = ctx.createLinearGradient(-botW, 0, botW, 0);
+  bodyG.addColorStop(0, '#f0e8d8');
+  bodyG.addColorStop(0.15, '#f8f2e6');
+  bodyG.addColorStop(0.5, '#faf6ee');
+  bodyG.addColorStop(0.85, '#f0eadc');
+  bodyG.addColorStop(1, '#e4dccb');
+  ctx.fillStyle = bodyG;
+  ctx.fill();
+
+  // 4-5. Red stripes — clipped to bucket, with slight gradient per stripe
+  ctx.save();
+  bucketPath();
+  ctx.clip();
+
+  const numStripes = 16;
   for (let i = 0; i < numStripes; i++) {
-    if (i % 2 === 0) continue; // skip white stripes (already white base)
-    // Interpolate left/right edges at top and bottom for this stripe
+    if (i % 2 === 0) continue;
     const t1 = i / numStripes;
     const t2 = (i + 1) / numStripes;
-    const topL = -topW + t1 * topW * 2;
-    const topR = -topW + t2 * topW * 2;
-    const botL = -botW + t1 * botW * 2;
-    const botR = -botW + t2 * botW * 2;
+    const tL = -topW + t1 * topW * 2;
+    const tR = -topW + t2 * topW * 2;
+    const bL = -botW + t1 * botW * 2;
+    const bR = -botW + t2 * botW * 2;
 
     ctx.beginPath();
-    ctx.moveTo(topL, -bH*0.5);
-    ctx.lineTo(botL, bH*0.5);
-    ctx.lineTo(botR, bH*0.5);
-    ctx.lineTo(topR, -bH*0.5);
+    ctx.moveTo(tL, -bH*0.5);
+    ctx.lineTo(bL, bH*0.5);
+    ctx.lineTo(bR, bH*0.5);
+    ctx.lineTo(tR, -bH*0.5);
     ctx.closePath();
-    ctx.fillStyle = stripeColor;
+
+    // 6. Each stripe has a subtle horizontal gradient for roundedness
+    const sg = ctx.createLinearGradient((tL+bL)/2, 0, (tR+bR)/2, 0);
+    sg.addColorStop(0, '#c01030');
+    sg.addColorStop(0.3, '#d81838');
+    sg.addColorStop(0.5, '#e01e3e');
+    sg.addColorStop(0.7, '#d81838');
+    sg.addColorStop(1, '#b80e2a');
+    ctx.fillStyle = sg;
     ctx.fill();
   }
-  ctx.restore();
 
-  // ── Bucket outline ──
-  ctx.beginPath();
-  ctx.moveTo(-topW, -bH*0.5);
-  ctx.lineTo(-botW, bH*0.5 - rimH);
-  ctx.quadraticCurveTo(-botW, bH*0.5, -botW + 2*scale, bH*0.5);
-  ctx.lineTo(botW - 2*scale, bH*0.5);
-  ctx.quadraticCurveTo(botW, bH*0.5, botW, bH*0.5 - rimH);
-  ctx.lineTo(topW, -bH*0.5);
-  ctx.closePath();
-  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+  // 7. Horizontal fold/crease lines (waxed cardboard look)
+  ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+  ctx.lineWidth = 0.7 * scale;
+  for (let fy = -bH*0.35; fy < bH*0.4; fy += bH*0.18) {
+    const fTopW = topW + (botW - topW) * ((fy + bH*0.5) / bH);
+    ctx.beginPath();
+    ctx.moveTo(-fTopW, fy);
+    ctx.lineTo(fTopW, fy);
+    ctx.stroke();
+  }
+
+  ctx.restore(); // un-clip
+
+  // 8. Bucket outline — darker at bottom
+  bucketPath();
+  ctx.strokeStyle = 'rgba(100,60,30,0.25)';
   ctx.lineWidth = 1.5 * scale;
   ctx.stroke();
 
-  // ── Rolled rim at bottom (the opening, now on the ground) ──
+  // 9-10. Left edge highlight (waxy sheen on cardboard)
+  const sheenG = ctx.createLinearGradient(-botW - 2*scale, 0, -topW*0.5, 0);
+  sheenG.addColorStop(0, 'rgba(255,255,255,0)');
+  sheenG.addColorStop(0.5, 'rgba(255,255,255,0.14)');
+  sheenG.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.save();
+  bucketPath();
+  ctx.clip();
   ctx.beginPath();
-  ctx.ellipse(0, bH*0.5, botW + 1*scale, rimH*1.4, 0, 0, Math.PI*2);
-  ctx.fillStyle = '#ddd5c5';
+  ctx.moveTo(-topW, -bH*0.5);
+  ctx.lineTo(-botW, bH*0.5);
+  ctx.lineTo(-topW*0.2, bH*0.5);
+  ctx.lineTo(-topW*0.15, -bH*0.5);
+  ctx.closePath();
+  ctx.fillStyle = sheenG;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-  ctx.lineWidth = 1 * scale;
+  ctx.restore();
+
+  // 11-12. Right side shadow
+  const rShadG = ctx.createLinearGradient(topW*0.4, 0, botW + 2*scale, 0);
+  rShadG.addColorStop(0, 'rgba(0,0,0,0)');
+  rShadG.addColorStop(0.6, 'rgba(0,0,0,0.06)');
+  rShadG.addColorStop(1, 'rgba(0,0,0,0.14)');
+  ctx.save();
+  bucketPath();
+  ctx.clip();
+  ctx.beginPath();
+  ctx.moveTo(topW*0.15, -bH*0.5);
+  ctx.lineTo(topW*0.2, bH*0.5);
+  ctx.lineTo(botW + 2*scale, bH*0.5);
+  ctx.lineTo(topW + 2*scale, -bH*0.5);
+  ctx.closePath();
+  ctx.fillStyle = rShadG;
+  ctx.fill();
+  ctx.restore();
+
+  // 13-16. Rolled rim at bottom (the opening sitting on the ground)
+  // Rim back (darker)
+  ctx.beginPath();
+  ctx.ellipse(0, bH*0.5 - rimH*0.3, botW + 2.5*scale, rimH*1.6, 0, 0, Math.PI*2);
+  ctx.fillStyle = '#c8bfad';
+  ctx.fill();
+  // Rim front face
+  ctx.beginPath();
+  ctx.ellipse(0, bH*0.5 - rimH*0.1, botW + 2*scale, rimH*1.3, 0, 0, Math.PI*2);
+  const rimG = ctx.createRadialGradient(0, bH*0.5, rimH*0.3, 0, bH*0.5, botW + 4*scale);
+  rimG.addColorStop(0, '#e8e0d0');
+  rimG.addColorStop(0.5, '#ddd5c2');
+  rimG.addColorStop(1, '#c5bca8');
+  ctx.fillStyle = rimG;
+  ctx.fill();
+  // Rim highlight
+  ctx.beginPath();
+  ctx.ellipse(0, bH*0.5 - rimH*0.5, botW + 1*scale, rimH*0.7, 0, Math.PI*1.1, Math.PI*1.9);
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 1.2 * scale;
   ctx.stroke();
-
-  // Inner rim (darker, gives depth)
+  // Rim outline
   ctx.beginPath();
-  ctx.ellipse(0, bH*0.5, botW - 2*scale, rimH*0.8, 0, 0, Math.PI*2);
-  ctx.fillStyle = 'rgba(0,0,0,0.08)';
-  ctx.fill();
-
-  // ── Flat base on top (the closed bottom, now facing up) ──
-  ctx.beginPath();
-  ctx.ellipse(0, -bH*0.5, topW, 6*scale, 0, 0, Math.PI*2);
-  ctx.fillStyle = '#e8e0d0';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+  ctx.ellipse(0, bH*0.5 - rimH*0.1, botW + 2*scale, rimH*1.3, 0, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(80,50,20,0.18)';
   ctx.lineWidth = 0.8 * scale;
   ctx.stroke();
+  // Inner darkness (the opening)
+  ctx.beginPath();
+  ctx.ellipse(0, bH*0.5, botW - 2*scale, rimH*0.7, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.fill();
 
-  // ── "POPCORN" text band ──
-  // White band across the upper portion
-  const bandY = -bH*0.18;
-  const bandH = 12 * scale;
-  const bandTopW = topW + (botW - topW) * 0.35;
-  const bandBotW = topW + (botW - topW) * 0.48;
+  // 17-19. Flat base on top (the closed bottom, facing up)
+  ctx.beginPath();
+  ctx.ellipse(0, -bH*0.5, topW + 0.5*scale, 6.5*scale, 0, 0, Math.PI*2);
+  const baseG = ctx.createRadialGradient(-3*scale, -bH*0.5 - 1*scale, 2*scale, 0, -bH*0.5, topW);
+  baseG.addColorStop(0, '#f0e8d8');
+  baseG.addColorStop(0.6, '#e0d8c6');
+  baseG.addColorStop(1, '#d0c8b4');
+  ctx.fillStyle = baseG;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(80,50,20,0.15)';
+  ctx.lineWidth = 0.8 * scale;
+  ctx.stroke();
+  // Base highlight
+  ctx.beginPath();
+  ctx.ellipse(-4*scale, -bH*0.5, topW*0.4, 2.5*scale, -0.15, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.fill();
 
+  // 20-26. "POPCORN" text band — upside down since bucket is flipped
+  const bandY = bH*0.08;
+  const bandH = 13 * scale;
+  const bandTopW = topW + (botW - topW) * 0.55;
+  const bandBotW = topW + (botW - topW) * 0.62;
+
+  // Band background
   ctx.beginPath();
   ctx.moveTo(-bandTopW, bandY - bandH/2);
   ctx.lineTo(-bandBotW, bandY + bandH/2);
   ctx.lineTo(bandBotW, bandY + bandH/2);
   ctx.lineTo(bandTopW, bandY - bandH/2);
   ctx.closePath();
-  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
   ctx.fill();
+  // Band border lines
+  ctx.strokeStyle = 'rgba(200,20,50,0.25)';
+  ctx.lineWidth = 0.6 * scale;
+  ctx.beginPath();
+  ctx.moveTo(-bandTopW, bandY - bandH/2);
+  ctx.lineTo(bandTopW, bandY - bandH/2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-bandBotW, bandY + bandH/2);
+  ctx.lineTo(bandBotW, bandY + bandH/2);
+  ctx.stroke();
 
-  // "POPCORN" text
-  ctx.fillStyle = '#cc1133';
-  ctx.font = `800 ${9*scale}px 'Arial Black', 'Impact', sans-serif`;
+  // POPCORN text — flipped upside down
+  ctx.save();
+  ctx.translate(0, bandY + 0.5*scale);
+  ctx.rotate(Math.PI); // flip 180°
+  ctx.fillStyle = '#c01030';
+  ctx.font = `900 ${9.5*scale}px 'Arial Black', 'Impact', sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.letterSpacing = `${2*scale}px`;
-  ctx.fillText('POPCORN', 0, bandY + 0.5*scale);
+  ctx.fillText('POPCORN', 0, 0);
+  // Text shadow for depth
+  ctx.fillStyle = 'rgba(80,0,10,0.15)';
+  ctx.fillText('POPCORN', 0.5*scale, 0.5*scale);
+  ctx.restore();
 
-  // ── Subtle lighting / sheen ──
-  // Left-side highlight
-  const sheenG = ctx.createLinearGradient(-botW, 0, -topW*0.3, 0);
-  sheenG.addColorStop(0, 'rgba(255,255,255,0)');
-  sheenG.addColorStop(0.4, 'rgba(255,255,255,0.1)');
-  sheenG.addColorStop(1, 'rgba(255,255,255,0)');
+  // 27-30. Decorative dots/stars above and below text band
+  ctx.fillStyle = 'rgba(200,20,50,0.3)';
+  for (const dy of [-bandH/2 - 4*scale, bandH/2 + 4*scale]) {
+    for (let dx = -bandTopW*0.7; dx <= bandTopW*0.7; dx += 8*scale) {
+      ctx.beginPath();
+      ctx.arc(dx, bandY + dy, 1*scale, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
 
+  // 31-34. Vertical ribs (structural rigidity lines on cardboard)
+  ctx.save();
+  bucketPath();
+  ctx.clip();
+  ctx.strokeStyle = 'rgba(0,0,0,0.025)';
+  ctx.lineWidth = 1.2 * scale;
+  for (let ri = 0; ri < numStripes; ri++) {
+    if (ri % 2 !== 0) continue; // only on white stripes
+    const t = (ri + 0.5) / numStripes;
+    const tx = -topW + t * topW * 2;
+    const bx = -botW + t * botW * 2;
+    ctx.beginPath();
+    ctx.moveTo(tx, -bH*0.5);
+    ctx.lineTo(bx, bH*0.5);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // 35-38. Waxy sheen — curved highlight on the front face
+  ctx.save();
+  bucketPath();
+  ctx.clip();
+  const frontSheen = ctx.createLinearGradient(0, -bH*0.5, 0, bH*0.2);
+  frontSheen.addColorStop(0, 'rgba(255,255,255,0.08)');
+  frontSheen.addColorStop(0.4, 'rgba(255,255,255,0.04)');
+  frontSheen.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = frontSheen;
   ctx.beginPath();
-  ctx.moveTo(-topW, -bH*0.5);
-  ctx.lineTo(-botW, bH*0.5);
-  ctx.lineTo(-topW*0.3, bH*0.5);
-  ctx.lineTo(-topW*0.2, -bH*0.5);
+  ctx.moveTo(-topW*0.6, -bH*0.5);
+  ctx.lineTo(-botW*0.3, bH*0.3);
+  ctx.lineTo(botW*0.1, bH*0.3);
+  ctx.lineTo(topW*0.2, -bH*0.5);
   ctx.closePath();
-  ctx.fillStyle = sheenG;
+  ctx.fill();
+  ctx.restore();
+
+  // 39-41. Bottom edge ambient occlusion (where bucket meets ground)
+  if (liftY >= -2) {
+    ctx.beginPath();
+    ctx.ellipse(0, bH*0.5 + 2*scale, botW*0.9, 3*scale, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    ctx.fill();
+  }
+
+  // 42-44. Top edge subtle inner shadow
+  ctx.save();
+  bucketPath();
+  ctx.clip();
+  const topInner = ctx.createLinearGradient(0, -bH*0.5, 0, -bH*0.35);
+  topInner.addColorStop(0, 'rgba(0,0,0,0.06)');
+  topInner.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = topInner;
+  ctx.fillRect(-topW - 2*scale, -bH*0.5, (topW + 2*scale)*2, bH*0.15);
+  ctx.restore();
+
+  // 45-47. Rim contact shadow at bottom of bucket body
+  ctx.beginPath();
+  ctx.moveTo(-botW, bH*0.5 - rimH*1.2);
+  ctx.lineTo(botW, bH*0.5 - rimH*1.2);
+  ctx.lineTo(botW, bH*0.5 - rimH*0.5);
+  ctx.lineTo(-botW, bH*0.5 - rimH*0.5);
+  ctx.closePath();
+  const contactG = ctx.createLinearGradient(0, bH*0.5 - rimH*1.2, 0, bH*0.5 - rimH*0.5);
+  contactG.addColorStop(0, 'rgba(0,0,0,0)');
+  contactG.addColorStop(1, 'rgba(0,0,0,0.04)');
+  ctx.fillStyle = contactG;
   ctx.fill();
 
-  // Right-side shadow
-  const shadowG = ctx.createLinearGradient(topW*0.3, 0, botW, 0);
-  shadowG.addColorStop(0, 'rgba(0,0,0,0)');
-  shadowG.addColorStop(0.5, 'rgba(0,0,0,0.06)');
-  shadowG.addColorStop(1, 'rgba(0,0,0,0.12)');
-
-  ctx.beginPath();
-  ctx.moveTo(topW*0.2, -bH*0.5);
-  ctx.lineTo(topW*0.3, bH*0.5);
-  ctx.lineTo(botW, bH*0.5);
-  ctx.lineTo(topW, -bH*0.5);
-  ctx.closePath();
-  ctx.fillStyle = shadowG;
-  ctx.fill();
+  // 48-50. Extra stripe edge definition — thin dark lines between stripe transitions
+  ctx.save();
+  bucketPath();
+  ctx.clip();
+  ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+  ctx.lineWidth = 0.5 * scale;
+  for (let i = 1; i < numStripes; i++) {
+    const t = i / numStripes;
+    const tx = -topW + t * topW * 2;
+    const bx = -botW + t * botW * 2;
+    ctx.beginPath();
+    ctx.moveTo(tx, -bH*0.5);
+    ctx.lineTo(bx, bH*0.5);
+    ctx.stroke();
+  }
+  ctx.restore();
 
   ctx.restore();
 }
