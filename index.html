@@ -17,439 +17,690 @@ body {
   touch-action: manipulation;
 }
 
-.shell-game {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+#game {
   width: 100%;
   max-width: 480px;
   height: 100dvh;
-  padding: 20px;
-  background: linear-gradient(135deg, #1a472a 0%, #2d5a3f 30%, #1a472a 60%, #0f2d1a 100%);
   position: relative;
   overflow: hidden;
 }
 
-.shell-game::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px);
-  pointer-events: none;
-}
-
-.shell-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+canvas {
   width: 100%;
-  max-width: 400px;
-  margin-bottom: 8px;
-  position: relative;
-  z-index: 1;
+  height: 100%;
+  display: block;
 }
 
-.shell-streak-count {
-  font-size: 18px;
-  font-weight: 700;
-  color: #ffd700;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-}
-
-.shell-best-display {
-  font-size: 13px;
-  color: rgba(255,255,255,0.6);
-  font-weight: 500;
-}
-
-.shell-instruction {
-  font-size: 22px;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  margin-bottom: 24px;
-  min-height: 30px;
-  text-align: center;
-  position: relative;
-  z-index: 1;
-}
-
-.shell-field {
-  position: relative;
-  margin: 0 auto;
-  z-index: 1;
-}
-
-.shell-cap-container {
+.ui-overlay {
   position: absolute;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.shell-cap-container.pickable {
-  cursor: pointer;
-}
-
-.shell-cap-container.pickable:active {
-  transform: scale(0.95);
-}
-
-.shell-ball {
-  position: absolute;
-  z-index: 0;
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
-}
-
-.shell-cap-svg {
-  z-index: 1;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.shell-cap-container.pickable .shell-cap-svg {
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4)) drop-shadow(0 0 6px rgba(255,215,0,0.3));
-}
-
-.shell-cap-container.picked .shell-cap-svg {
-  filter: drop-shadow(0 4px 12px rgba(255,215,0,0.6));
-}
-
-.shell-cap-count {
-  margin-top: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.7);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  position: relative;
-  z-index: 1;
-}
-
-/* Game over */
-.shell-gameover {
+  top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  text-align: center;
-  position: relative;
-  z-index: 1;
+  pointer-events: none;
+  z-index: 2;
 }
 
-.shell-gameover-title {
-  font-size: 32px;
-  font-weight: 800;
-  color: white;
-  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+.ui-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 20px 0;
 }
 
-.shell-best {
-  font-size: 16px;
-  color: rgba(255,255,255,0.7);
+.ui-streak {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  min-height: 22px;
+}
+
+.ui-best {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
   font-weight: 500;
 }
 
-.shell-best.new-record {
-  font-size: 22px;
+.ui-instruction {
+  font-size: 24px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  margin-top: 12px;
+  text-align: center;
+  min-height: 32px;
+  letter-spacing: -0.3px;
+  transition: opacity 0.3s;
+}
+
+.ui-cap-count {
+  margin-top: auto;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* Tap targets over caps */
+.tap-zone {
+  position: absolute;
+  pointer-events: auto;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.tap-zone:active { opacity: 0.8; }
+
+/* Game over overlay */
+.gameover-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  gap: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+.go-title {
+  font-size: 34px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.go-best {
+  font-size: 16px;
+  color: rgba(255,255,255,0.7);
+}
+
+.go-best.new-record {
+  font-size: 24px;
   font-weight: 800;
   color: #ffd700;
-  text-shadow: 0 0 12px rgba(255,215,0,0.5);
-  animation: shell-pulse 0.6s ease-in-out 3;
+  text-shadow: 0 0 14px rgba(255,215,0,0.5);
+  animation: pulse 0.6s ease-in-out 3;
 }
 
-@keyframes shell-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
 }
 
-.shell-caps-display {
-  display: flex;
-  gap: 8px;
-  margin: 8px 0;
-}
-
-.shell-cap-mini { opacity: 0.6; }
-
-.shell-done-btn {
-  margin-top: 12px;
-  padding: 14px 36px;
+.go-btn {
+  margin-top: 8px;
+  padding: 16px 40px;
   font-size: 18px;
   font-weight: 700;
   color: white;
-  background: linear-gradient(180deg, #4a8c3f 0%, #357a2b 100%);
+  background: linear-gradient(180deg, #4a8c3f, #357a2b);
   border: 2px solid #2d6a1e;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
-  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
   font-family: inherit;
+  pointer-events: auto;
 }
-
-.shell-done-btn:active {
-  transform: scale(0.96);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
+.go-btn:active { transform: scale(0.96); }
 </style>
 </head>
 <body>
-<div id="app" class="shell-game"></div>
+<div id="game">
+  <canvas id="c"></canvas>
+  <div class="ui-overlay" id="ui"></div>
+</div>
+
 <script>
-const CAP_COLORS = ['#c41e3a', '#1a3a6b', '#2d6a1e', '#6b3a1a', '#4a1a6b'];
-const BEST_KEY = 'shell_game_best';
+// ── Config ──
+const BEST_KEY = 'shell_game_best_v2';
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-function darken(hex, amount) {
-  const r = parseInt(hex.slice(1,3),16);
-  const g = parseInt(hex.slice(3,5),16);
-  const b = parseInt(hex.slice(5,7),16);
-  const f = 1 - amount;
-  return `rgb(${Math.round(r*f)},${Math.round(g*f)},${Math.round(b*f)})`;
+function getBest() { try { return parseInt(localStorage.getItem(BEST_KEY)||'0'); } catch { return 0; } }
+function saveBest(n) { try { localStorage.setItem(BEST_KEY, String(n)); } catch {} }
+
+// ── Difficulty ──
+function getDiff(round) {
+  if (round <= 1) return { numCaps: 3, numSwaps: 3, swapMs: 600, pauseMs: 200 };
+  if (round === 2) return { numCaps: 3, numSwaps: 4, swapMs: 520, pauseMs: 160 };
+  if (round === 3) return { numCaps: 3, numSwaps: 5, swapMs: 440, pauseMs: 140 };
+  if (round === 4) return { numCaps: 3, numSwaps: 6, swapMs: 380, pauseMs: 120 };
+  if (round === 5) return { numCaps: 4, numSwaps: 5, swapMs: 420, pauseMs: 140 };
+  if (round === 6) return { numCaps: 4, numSwaps: 7, swapMs: 360, pauseMs: 120 };
+  if (round === 7) return { numCaps: 4, numSwaps: 8, swapMs: 310, pauseMs: 100 };
+  const x = round - 8;
+  return { numCaps: 5, numSwaps: Math.min(9+x, 14), swapMs: Math.max(280-x*15, 180), pauseMs: Math.max(90-x*5, 50) };
 }
 
-function getBestStreak() {
-  try { return parseInt(localStorage.getItem(BEST_KEY)||'0',10); } catch { return 0; }
-}
-function saveBestStreak(n) {
-  try { localStorage.setItem(BEST_KEY, String(n)); } catch {}
-}
-
-function getDifficulty(round) {
-  if (round <= 1) return { numCaps: 3, numSwaps: 2, swapDuration: 500 };
-  if (round === 2) return { numCaps: 3, numSwaps: 3, swapDuration: 450 };
-  if (round === 3) return { numCaps: 3, numSwaps: 4, swapDuration: 380 };
-  if (round === 4) return { numCaps: 3, numSwaps: 5, swapDuration: 320 };
-  if (round === 5) return { numCaps: 4, numSwaps: 5, swapDuration: 320 };
-  if (round === 6) return { numCaps: 4, numSwaps: 6, swapDuration: 280 };
-  if (round === 7) return { numCaps: 4, numSwaps: 7, swapDuration: 250 };
-  const extra = round - 8;
-  return { numCaps: 5, numSwaps: Math.min(8+extra,12), swapDuration: Math.max(200-extra*10,140) };
-}
-
-function generateSwaps(count, numCaps) {
-  const swaps = [];
+function genSwaps(count, n) {
+  const s = [];
+  let last = -1;
   for (let i = 0; i < count; i++) {
-    const a = Math.floor(Math.random()*numCaps);
-    let b = Math.floor(Math.random()*(numCaps-1));
-    if (b >= a) b++;
-    swaps.push([a,b]);
+    let a, b;
+    do {
+      a = Math.floor(Math.random()*n);
+      b = Math.floor(Math.random()*(n-1));
+      if (b >= a) b++;
+    } while (a === last || b === last); // avoid repeating same slot
+    s.push([a, b]);
+    last = a; // slight variety
   }
-  return swaps;
+  return s;
 }
 
-function capSVG(color, w, h) {
-  const d1 = darken(color, 0.3);
-  const d2 = darken(color, 0.15);
-  const d3 = darken(color, 0.1);
-  const d4 = darken(color, 0.2);
-  return `<svg viewBox="0 0 100 70" width="${w}" height="${h}" style="overflow:visible">
-    <ellipse cx="50" cy="52" rx="42" ry="18" fill="${color}"/>
-    <path d="M8 52 Q8 20 50 12 Q92 20 92 52" fill="${color}"/>
-    <ellipse cx="50" cy="52" rx="42" ry="18" fill="none" stroke="${d1}" stroke-width="2.5"/>
-    <path d="M50 14 L50 42" stroke="${d2}" stroke-width="1" opacity="0.5"/>
-    <path d="M30 20 Q40 35 50 42" stroke="${d2}" stroke-width="0.8" opacity="0.4"/>
-    <path d="M70 20 Q60 35 50 42" stroke="${d2}" stroke-width="0.8" opacity="0.4"/>
-    <circle cx="50" cy="14" r="3" fill="${d4}"/>
-    <ellipse cx="50" cy="55" rx="48" ry="8" fill="${d3}"/>
-    <ellipse cx="50" cy="56" rx="46" ry="5" fill="${d4}"/>
-    <path d="M28 30 Q40 22 55 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3" stroke-linecap="round"/>
-  </svg>`;
+// ── Canvas setup ──
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const gameEl = document.getElementById('game');
+const uiEl = document.getElementById('ui');
+
+let W, H, CX, CY;
+function resize() {
+  const r = gameEl.getBoundingClientRect();
+  W = r.width; H = r.height;
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  CX = W / 2; CY = H * 0.48;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── Colors ──
+const CAP_COLORS = [
+  { main: '#c41e3a', dark: '#8a1528', mid: '#a01a30', light: '#e8354f' },
+  { main: '#1a3a6b', dark: '#0f2245', mid: '#15305a', light: '#2a5090' },
+  { main: '#2d6a1e', dark: '#1a4012', mid: '#256018', light: '#3d8a2a' },
+  { main: '#6b3a1a', dark: '#452510', mid: '#5a3018', light: '#8a5028' },
+  { main: '#4a1a6b', dark: '#2e1042', mid: '#3e1558', light: '#6a2a90' },
+];
+
+// ── Drawing functions ──
+
+function drawGrass() {
+  // Base green gradient
+  const g = ctx.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, '#1a5c2a');
+  g.addColorStop(0.3, '#2a7040');
+  g.addColorStop(0.6, '#1e6030');
+  g.addColorStop(1, '#154820');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // Mowing stripes
+  ctx.globalAlpha = 0.06;
+  for (let y = 0; y < H; y += 30) {
+    if ((Math.floor(y / 30) % 2) === 0) {
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, y, W, 15);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // Vignette
+  const vg = ctx.createRadialGradient(CX, CY, W*0.2, CX, CY, W*0.9);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, 'rgba(0,0,0,0.35)');
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle dirt circle in center
+  ctx.beginPath();
+  ctx.ellipse(CX, CY + 50, 120, 30, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(160, 120, 70, 0.08)';
+  ctx.fill();
 }
 
-function ballSVG(size) {
-  return `<svg viewBox="0 0 40 40" width="${size}" height="${size}">
-    <circle cx="20" cy="20" r="18" fill="#f5f5f0" stroke="#cc0000" stroke-width="1.5"/>
-    <path d="M10 8 Q8 20 10 32" fill="none" stroke="#cc0000" stroke-width="1.2"/>
-    <path d="M30 8 Q32 20 30 32" fill="none" stroke="#cc0000" stroke-width="1.2"/>
-    <line x1="8" y1="10" x2="12" y2="11" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="7" y1="14" x2="11" y2="14" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="7" y1="18" x2="11" y2="17.5" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="7" y1="22" x2="11" y2="22.5" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="8" y1="26" x2="12" y2="25.5" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="9" y1="30" x2="12" y2="29" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="28" y1="10" x2="32" y2="11" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="29" y1="14" x2="33" y2="14" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="29" y1="18" x2="33" y2="17.5" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="29" y1="22" x2="33" y2="22.5" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="28" y1="26" x2="32" y2="25.5" stroke="#cc0000" stroke-width="0.8"/>
-    <line x1="29" y1="30" x2="32" y2="29" stroke="#cc0000" stroke-width="0.8"/>
-  </svg>`;
+function drawBall(x, y, size) {
+  ctx.save();
+  // Shadow
+  ctx.beginPath();
+  ctx.ellipse(x, y + size * 0.8, size * 0.7, size * 0.2, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.fill();
+
+  // Ball body
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI * 2);
+  const bg = ctx.createRadialGradient(x - size*0.3, y - size*0.3, size*0.1, x, y, size);
+  bg.addColorStop(0, '#fffff5');
+  bg.addColorStop(0.4, '#f5f0e8');
+  bg.addColorStop(1, '#d8d0c0');
+  ctx.fillStyle = bg;
+  ctx.fill();
+
+  // Seam curves
+  ctx.strokeStyle = '#cc0000';
+  ctx.lineWidth = size * 0.08;
+
+  // Left seam
+  ctx.beginPath();
+  ctx.moveTo(x - size*0.45, y - size*0.65);
+  ctx.quadraticCurveTo(x - size*0.55, y, x - size*0.45, y + size*0.65);
+  ctx.stroke();
+
+  // Right seam
+  ctx.beginPath();
+  ctx.moveTo(x + size*0.45, y - size*0.65);
+  ctx.quadraticCurveTo(x + size*0.55, y, x + size*0.45, y + size*0.65);
+  ctx.stroke();
+
+  // Stitch marks
+  ctx.lineWidth = size * 0.05;
+  for (let i = -3; i <= 3; i++) {
+    const yy = y + i * size * 0.18;
+    // Left stitches
+    ctx.beginPath();
+    ctx.moveTo(x - size*0.55 + Math.abs(i)*1.5, yy);
+    ctx.lineTo(x - size*0.38 + Math.abs(i)*1, yy + size*0.04);
+    ctx.stroke();
+    // Right stitches
+    ctx.beginPath();
+    ctx.moveTo(x + size*0.55 - Math.abs(i)*1.5, yy);
+    ctx.lineTo(x + size*0.38 - Math.abs(i)*1, yy + size*0.04);
+    ctx.stroke();
+  }
+
+  // Highlight
+  ctx.beginPath();
+  ctx.arc(x - size*0.25, y - size*0.3, size*0.25, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawCap(x, y, w, col, liftY) {
+  // liftY: 0 = sitting on surface, negative = lifted up
+  const h = w * 0.55;
+  const brimH = w * 0.12;
+  const cy = y + liftY;
+
+  ctx.save();
+
+  // Shadow on ground (bigger when lifted)
+  const shadowSpread = 1 + Math.abs(liftY) * 0.005;
+  ctx.beginPath();
+  ctx.ellipse(x, y + h*0.3, w*0.55*shadowSpread, brimH*1.2*shadowSpread, 0, 0, Math.PI*2);
+  ctx.fillStyle = `rgba(0,0,0,${0.3 - Math.abs(liftY)*0.001})`;
+  ctx.fill();
+
+  // Brim — wide, flat, slightly curved
+  const brimW = w * 0.62;
+  ctx.beginPath();
+  ctx.ellipse(x, cy + h*0.22, brimW, brimH, 0, 0, Math.PI*2);
+  ctx.fillStyle = col.dark;
+  ctx.fill();
+
+  // Brim top surface
+  ctx.beginPath();
+  ctx.ellipse(x, cy + h*0.18, brimW*0.96, brimH*0.75, 0, 0, Math.PI*2);
+  ctx.fillStyle = col.mid;
+  ctx.fill();
+
+  // Crown — dome shape
+  ctx.beginPath();
+  ctx.moveTo(x - w*0.42, cy + h*0.2);
+  ctx.quadraticCurveTo(x - w*0.48, cy - h*0.3, x, cy - h*0.55);
+  ctx.quadraticCurveTo(x + w*0.48, cy - h*0.3, x + w*0.42, cy + h*0.2);
+  ctx.closePath();
+
+  const crownG = ctx.createLinearGradient(x - w*0.3, cy - h*0.5, x + w*0.3, cy + h*0.2);
+  crownG.addColorStop(0, col.light);
+  crownG.addColorStop(0.35, col.main);
+  crownG.addColorStop(1, col.dark);
+  ctx.fillStyle = crownG;
+  ctx.fill();
+
+  // Crown panel stitching
+  ctx.strokeStyle = `rgba(0,0,0,0.15)`;
+  ctx.lineWidth = 0.8;
+
+  // Center seam
+  ctx.beginPath();
+  ctx.moveTo(x, cy - h*0.55);
+  ctx.lineTo(x, cy + h*0.05);
+  ctx.stroke();
+
+  // Left panel seam
+  ctx.beginPath();
+  ctx.moveTo(x, cy - h*0.55);
+  ctx.quadraticCurveTo(x - w*0.25, cy - h*0.25, x - w*0.38, cy + h*0.15);
+  ctx.stroke();
+
+  // Right panel seam
+  ctx.beginPath();
+  ctx.moveTo(x, cy - h*0.55);
+  ctx.quadraticCurveTo(x + w*0.25, cy - h*0.25, x + w*0.38, cy + h*0.15);
+  ctx.stroke();
+
+  // Button on top
+  ctx.beginPath();
+  ctx.arc(x, cy - h*0.55, w*0.035, 0, Math.PI*2);
+  ctx.fillStyle = col.dark;
+  ctx.fill();
+
+  // Opening rim / band
+  ctx.beginPath();
+  ctx.ellipse(x, cy + h*0.2, w*0.43, brimH*0.6, 0, 0, Math.PI*2);
+  ctx.strokeStyle = col.dark;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Highlight on crown
+  ctx.beginPath();
+  ctx.moveTo(x - w*0.2, cy - h*0.2);
+  ctx.quadraticCurveTo(x - w*0.05, cy - h*0.42, x + w*0.1, cy - h*0.38);
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  ctx.restore();
 }
 
 // ── Game state ──
-let state = {
-  round: 1,
-  streak: 0,
-  bestStreak: getBestStreak(),
-  phase: 'reveal', // reveal, cover, shuffling, pick, result, gameover
-  ballPos: 0,
-  capPositions: [],
-  capsRaised: true,
-  pickedSlot: null,
-  swapQueue: [],
-  timer: null,
-};
+let state = {};
+let bestStreak = getBest();
+let animFrame;
 
-const app = document.getElementById('app');
-
-function getSlotLeft(slot, numCaps, capWidth) {
-  const totalWidth = numCaps <= 3 ? 300 : numCaps === 4 ? 380 : 440;
-  const gap = (totalWidth - capWidth * numCaps) / (numCaps - 1);
-  return slot * (capWidth + gap);
+function slotX(slot, numCaps) {
+  const spacing = Math.min(W * 0.22, 100);
+  const totalW = (numCaps - 1) * spacing;
+  return CX - totalW/2 + slot * spacing;
 }
 
-function render() {
+const CAP_W = 90;
+const BALL_R = 12;
+
+// ── Easing ──
+function easeInOut(t) {
+  return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
+}
+
+// ── State machine ──
+// Phases: reveal, covering, shuffling, picking, revealing, gameover
+
+function startRound(round, streak) {
+  const diff = getDiff(round);
+  state = {
+    round, streak, diff,
+    phase: 'reveal',
+    numCaps: diff.numCaps,
+    // capSlots[i] = which slot cap i is in
+    capSlots: Array.from({length: diff.numCaps}, (_,i) => i),
+    ballUnder: Math.floor(Math.random() * diff.numCaps), // which cap index has the ball
+    liftAmounts: new Array(diff.numCaps).fill(0), // per cap lift (for reveal)
+    ballVisible: true,
+    swaps: genSwaps(diff.numSwaps, diff.numCaps),
+    swapIndex: 0,
+    swapProgress: 0, // 0-1 for current swap animation
+    swapStartTime: 0,
+    pickedSlot: null,
+    revealOrder: [],
+    revealIndex: 0,
+    revealTimer: 0,
+    phaseTimer: 0,
+    startTime: performance.now(),
+  };
+
+  // Lift the cap that has the ball to show it
+  state.liftAmounts[state.ballUnder] = -60;
+  state.phaseTimer = performance.now() + 1400; // show ball for 1.4s
+
+  updateUI();
+}
+
+function updateUI() {
   const s = state;
-  const diff = getDifficulty(s.round);
-  const { numCaps } = diff;
-  const capWidth = numCaps <= 3 ? 80 : numCaps === 4 ? 76 : 68;
-  const capHeight = Math.round(capWidth * 0.7);
-  const totalWidth = numCaps <= 3 ? 300 : numCaps === 4 ? 380 : 440;
-  const fieldHeight = capHeight + 50;
-  const ballSize = Math.min(capWidth * 0.35, 30);
+  let instr = '';
+  if (s.phase === 'reveal' || s.phase === 'covering') instr = 'Watch the ball\u2026';
+  else if (s.phase === 'shuffling') instr = 'Follow the cap\u2026';
+  else if (s.phase === 'picking') instr = 'Where\u2019s the ball?';
+  else if (s.phase === 'revealing') instr = s.pickedSlot === s.capSlots[s.ballUnder] ? '&#x2705; Yes!' : '&#x274C; Nope!';
+  else if (s.phase === 'gameover') instr = '';
 
-  if (s.phase === 'gameover') {
-    const isNewRecord = s.streak > 0 && s.streak >= s.bestStreak;
-    let capsHtml = '';
-    for (let i = 0; i < numCaps; i++) {
-      capsHtml += `<div class="shell-cap-mini">${capSVG(CAP_COLORS[i%5], 48, 34)}</div>`;
-    }
-    app.innerHTML = `
-      <div class="shell-gameover">
-        <div class="shell-gameover-title">${s.streak === 0 ? 'Not this time!' : s.streak + ' in a row!'}</div>
-        ${s.streak > 0 ? `<div class="shell-best ${isNewRecord ? 'new-record' : ''}">${isNewRecord ? 'NEW RECORD!' : 'Best: ' + s.bestStreak}</div>` : ''}
-        <div class="shell-caps-display">${capsHtml}</div>
-        <button class="shell-done-btn" id="done-btn">Play Again</button>
-      </div>`;
-    document.getElementById('done-btn').onclick = () => startRound(1, 0);
-    return;
-  }
+  let streakHtml = s.streak > 0 ? `<span class="ui-streak">${s.streak} in a row</span>` : '';
 
-  let instrText = '';
-  if (s.phase === 'reveal' || s.phase === 'cover') instrText = 'Watch the ball...';
-  else if (s.phase === 'shuffling') instrText = 'Watch closely...';
-  else if (s.phase === 'pick') instrText = 'Where is it?';
-  else if (s.phase === 'result') instrText = s.pickedSlot === s.ballPos ? 'Got it!' : 'Nope!';
-
-  let capsHtml = '';
-  for (let i = 0; i < numCaps; i++) {
-    const slot = s.capPositions[i];
-    const left = getSlotLeft(slot, numCaps, capWidth);
-    const hasBall = slot === s.ballPos;
-    const isPicked = s.pickedSlot === slot;
-    const topOffset = s.capsRaised ? -capHeight * 0.4 : 0;
-    const pickable = s.phase === 'pick';
-
-    let ballHtml = '';
-    if (hasBall) {
-      const opacity = s.capsRaised ? 1 : 0;
-      ballHtml = `<div class="shell-ball" style="width:${ballSize}px;height:${ballSize}px;bottom:4px;left:50%;transform:translateX(-50%);opacity:${opacity};transition:opacity 0.3s">${ballSVG(ballSize)}</div>`;
-    }
-
-    capsHtml += `<div class="shell-cap-container ${pickable?'pickable':''} ${isPicked?'picked':''}" data-slot="${slot}"
-      style="position:absolute;left:${left}px;width:${capWidth}px;height:${capHeight+40}px;top:${topOffset}px;transition:left ${diff.swapDuration}ms ease-in-out, top 0.4s ease-in-out;cursor:${pickable?'pointer':'default'}">
-      ${ballHtml}
-      <div class="shell-cap-svg" style="width:${capWidth}px;height:${capHeight}px;top:${s.capsRaised ? 0 : capHeight*0.15}px;transition:top 0.4s ease-in-out">${capSVG(CAP_COLORS[i%5], capWidth, capHeight)}</div>
-    </div>`;
-  }
-
-  app.innerHTML = `
-    <div class="shell-header">
-      <div>${s.streak > 0 ? `<span class="shell-streak-count">${s.streak} in a row</span>` : ''}</div>
-      <div class="shell-best-display">Best: ${s.bestStreak}</div>
+  let html = `
+    <div class="ui-header">
+      <div>${streakHtml}</div>
+      <div class="ui-best">Best: ${bestStreak}</div>
     </div>
-    <div class="shell-instruction">${instrText}</div>
-    <div class="shell-field" style="width:${totalWidth}px;height:${fieldHeight}px;position:relative">${capsHtml}</div>
-    ${numCaps > 3 ? `<div class="shell-cap-count">${numCaps} caps!</div>` : ''}`;
+    <div class="ui-instruction">${instr}</div>`;
 
-  if (s.phase === 'pick') {
-    document.querySelectorAll('.shell-cap-container.pickable').forEach(el => {
-      el.onclick = () => handlePick(parseInt(el.dataset.slot));
-    });
-  }
-}
-
-function clearTimer() {
-  if (state.timer) { clearTimeout(state.timer); state.timer = null; }
-}
-
-function startRound(roundNum, currentStreak) {
-  clearTimer();
-  const diff = getDifficulty(roundNum);
-  state.round = roundNum;
-  state.streak = currentStreak;
-  state.phase = 'reveal';
-  state.ballPos = Math.floor(Math.random() * diff.numCaps);
-  state.capPositions = Array.from({length: diff.numCaps}, (_,i) => i);
-  state.capsRaised = true;
-  state.pickedSlot = null;
-  state.swapQueue = [];
-  render();
-
-  // reveal -> cover
-  state.timer = setTimeout(() => {
-    state.capsRaised = false;
-    state.phase = 'cover';
-    render();
-
-    // cover -> shuffling
-    state.timer = setTimeout(() => {
-      state.swapQueue = generateSwaps(diff.numSwaps, diff.numCaps);
-      state.phase = 'shuffling';
-      executeSwaps(diff);
-    }, 500);
-  }, 1200);
-}
-
-function executeSwaps(diff) {
-  if (state.swapQueue.length === 0) {
-    state.phase = 'pick';
-    render();
-    return;
+  if (s.numCaps > 3 && s.phase !== 'gameover') {
+    html += `<div class="ui-cap-count">${s.numCaps} caps</div>`;
   }
 
-  const [a, b] = state.swapQueue.shift();
-  // Find caps at these positions and swap
-  const capAtA = state.capPositions.indexOf(a);
-  const capAtB = state.capPositions.indexOf(b);
-  if (capAtA !== -1) state.capPositions[capAtA] = b;
-  if (capAtB !== -1) state.capPositions[capAtB] = a;
-  if (state.ballPos === a) state.ballPos = b;
-  else if (state.ballPos === b) state.ballPos = a;
+  uiEl.innerHTML = html;
 
-  render();
-
-  state.timer = setTimeout(() => {
-    setTimeout(() => executeSwaps(diff), 80);
-  }, diff.swapDuration);
-}
-
-function handlePick(slotIndex) {
-  if (state.phase !== 'pick') return;
-  state.pickedSlot = slotIndex;
-  state.capsRaised = true;
-  const correct = slotIndex === state.ballPos;
-  state.phase = 'result';
-  render();
-
-  state.timer = setTimeout(() => {
-    if (correct) {
-      const newStreak = state.streak + 1;
-      state.bestStreak = Math.max(state.bestStreak, newStreak);
-      saveBestStreak(state.bestStreak);
-      startRound(state.round + 1, newStreak);
-    } else {
-      state.bestStreak = Math.max(state.bestStreak, state.streak);
-      saveBestStreak(state.bestStreak);
-      state.phase = 'gameover';
-      render();
+  // Add tap zones during picking phase
+  if (s.phase === 'picking') {
+    for (let slot = 0; slot < s.numCaps; slot++) {
+      const x = slotX(slot, s.numCaps);
+      const zone = document.createElement('div');
+      zone.className = 'tap-zone';
+      const size = CAP_W * 1.1;
+      zone.style.width = size + 'px';
+      zone.style.height = size + 'px';
+      zone.style.left = (x - size/2) + 'px';
+      zone.style.top = (CY - size*0.4) + 'px';
+      zone.dataset.slot = slot;
+      zone.addEventListener('click', () => handlePick(slot));
+      uiEl.appendChild(zone);
     }
-  }, correct ? 1000 : 1500);
+  }
 }
 
-// Start
+function handlePick(slot) {
+  if (state.phase !== 'picking') return;
+  state.phase = 'revealing';
+  state.pickedSlot = slot;
+
+  // Build reveal order: wrong caps first, then the picked one / ball one last
+  const ballSlot = state.capSlots[state.ballUnder];
+  const correct = slot === ballSlot;
+  const allSlots = Array.from({length: state.numCaps}, (_,i) => i);
+
+  // Find cap indices at each slot for lifting
+  const wrongSlots = allSlots.filter(s => s !== ballSlot && s !== slot);
+
+  if (correct) {
+    // Lift wrong caps first, then the correct one
+    state.revealOrder = [...wrongSlots, slot];
+  } else {
+    // Lift other wrong caps, then picked (wrong), then ball cap
+    const otherWrong = wrongSlots.filter(s => s !== slot);
+    state.revealOrder = [...otherWrong, slot, ballSlot];
+  }
+
+  state.revealIndex = 0;
+  state.revealTimer = performance.now() + 400;
+  updateUI();
+}
+
+function showGameover() {
+  state.phase = 'gameover';
+  bestStreak = Math.max(bestStreak, state.streak);
+  saveBest(bestStreak);
+
+  const isNew = state.streak > 0 && state.streak >= bestStreak;
+
+  let html = `<div class="gameover-overlay">
+    <div class="go-title">${state.streak === 0 ? 'Not this time!' : state.streak + ' in a row!'}</div>
+    ${state.streak > 0 ? `<div class="go-best ${isNew ? 'new-record' : ''}">${isNew ? 'NEW RECORD!' : 'Best: ' + bestStreak}</div>` : ''}
+    <button class="go-btn" id="go-btn">Play Again</button>
+  </div>`;
+
+  uiEl.innerHTML = html;
+  document.getElementById('go-btn').addEventListener('click', () => startRound(1, 0));
+}
+
+// ── Animation loop ──
+function frame(now) {
+  animFrame = requestAnimationFrame(frame);
+  const s = state;
+  if (!s.phase) return;
+
+  // ── Phase transitions ──
+  if (s.phase === 'reveal' && now >= s.phaseTimer) {
+    // Start covering — lower the lifted cap
+    s.phase = 'covering';
+    s.phaseTimer = now + 450;
+  }
+
+  if (s.phase === 'covering') {
+    // Animate cap down
+    const t = 1 - Math.max(0, (s.phaseTimer - now) / 450);
+    s.liftAmounts[s.ballUnder] = -60 * (1 - easeInOut(t));
+    if (t >= 1) {
+      s.liftAmounts[s.ballUnder] = 0;
+      s.ballVisible = false;
+      s.phase = 'shuffling';
+      s.swapIndex = 0;
+      s.swapStartTime = now + 300; // brief pause before shuffling
+      s.swapProgress = 0;
+    }
+  }
+
+  if (s.phase === 'shuffling') {
+    if (s.swapIndex >= s.swaps.length) {
+      // Done shuffling
+      s.phase = 'picking';
+      updateUI();
+    } else if (now >= s.swapStartTime) {
+      const elapsed = now - s.swapStartTime;
+      s.swapProgress = Math.min(elapsed / s.diff.swapMs, 1);
+    }
+
+    // Check if current swap is done
+    if (s.swapProgress >= 1 && s.swapIndex < s.swaps.length) {
+      // Commit the swap
+      const [a, b] = s.swaps[s.swapIndex];
+      const capA = s.capSlots.indexOf(a);
+      const capB = s.capSlots.indexOf(b);
+      if (capA !== -1) s.capSlots[capA] = b;
+      if (capB !== -1) s.capSlots[capB] = a;
+
+      s.swapIndex++;
+      s.swapProgress = 0;
+      s.swapStartTime = now + s.diff.pauseMs;
+    }
+  }
+
+  if (s.phase === 'revealing' && now >= s.revealTimer) {
+    if (s.revealIndex < s.revealOrder.length) {
+      // Lift next cap
+      const revealSlot = s.revealOrder[s.revealIndex];
+      // Find which cap is at this slot
+      const capIdx = s.capSlots.indexOf(revealSlot);
+      if (capIdx !== -1) s.liftAmounts[capIdx] = -55;
+      s.ballVisible = true; // show ball once caps start lifting
+
+      s.revealIndex++;
+      // Longer pause for the last reveal (the answer)
+      const isLast = s.revealIndex >= s.revealOrder.length;
+      s.revealTimer = now + (isLast ? 1200 : 500);
+    } else {
+      // All revealed — decide outcome
+      const correct = s.pickedSlot === s.capSlots[s.ballUnder];
+      if (correct) {
+        const newStreak = s.streak + 1;
+        bestStreak = Math.max(bestStreak, newStreak);
+        saveBest(bestStreak);
+        setTimeout(() => startRound(s.round + 1, newStreak), 600);
+      } else {
+        setTimeout(showGameover, 400);
+      }
+    }
+  }
+
+  // ── Draw ──
+  drawGrass();
+
+  // Compute cap positions (with swap animation)
+  const positions = []; // {x, y, capIdx, liftY}
+  for (let i = 0; i < s.numCaps; i++) {
+    let slot = s.capSlots[i];
+    let x = slotX(slot, s.numCaps);
+    let arcY = 0;
+
+    // If this cap is being swapped right now, interpolate
+    if (s.phase === 'shuffling' && s.swapIndex < s.swaps.length) {
+      const [a, b] = s.swaps[s.swapIndex];
+      if (slot === a || slot === b) {
+        const targetSlot = slot === a ? b : a;
+        const fromX = slotX(slot, s.numCaps);
+        const toX = slotX(targetSlot, s.numCaps);
+        const t = easeInOut(s.swapProgress);
+        x = fromX + (toX - fromX) * t;
+
+        // Arc: one cap goes over, one goes under
+        const isFirst = slot === a;
+        const arcHeight = 35 + Math.abs(toX - fromX) * 0.15;
+        if (isFirst) {
+          // Arc up and over
+          arcY = -arcHeight * Math.sin(t * Math.PI);
+        } else {
+          // Slight dip under
+          arcY = arcHeight * 0.2 * Math.sin(t * Math.PI);
+        }
+      }
+    }
+
+    positions.push({ x, y: CY + arcY, capIdx: i, liftY: s.liftAmounts[i] });
+  }
+
+  // Sort by y so caps in back draw first (crude depth sort)
+  positions.sort((a, b) => (a.y + a.liftY) - (b.y + b.liftY));
+
+  // Draw ball under the correct cap's position
+  if (s.ballVisible) {
+    const ballCap = positions.find(p => p.capIdx === s.ballUnder);
+    if (ballCap) {
+      drawBall(ballCap.x, ballCap.y + CAP_W * 0.18, BALL_R);
+    }
+  }
+
+  // Draw caps
+  for (const p of positions) {
+    const col = CAP_COLORS[p.capIdx % CAP_COLORS.length];
+
+    // Glow effect during picking phase
+    if (s.phase === 'picking') {
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y + p.liftY - CAP_W*0.1, CAP_W*0.5, CAP_W*0.35, 0, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.08)';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Highlight picked cap during reveal
+    if (s.phase === 'revealing' && s.pickedSlot === s.capSlots[p.capIdx]) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y - CAP_W*0.1, CAP_W*0.55, CAP_W*0.4, 0, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.12)';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    drawCap(p.x, p.y, CAP_W, col, p.liftY);
+  }
+}
+
+// ── Start ──
 startRound(1, 0);
+animFrame = requestAnimationFrame(frame);
 </script>
 </body>
 </html>
